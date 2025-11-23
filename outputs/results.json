@@ -1,0 +1,16 @@
+{
+  "size": {
+    "lasso_r2_cv_mean": NaN,
+    "rf_r2_cv_mean": NaN,
+    "recommendation": {
+      "note": "Model could not generate predictions for grid"
+    }
+  },
+  "pdi": {
+    "lasso_r2_cv_mean": NaN,
+    "rf_r2_cv_mean": NaN,
+    "recommendation": {
+      "note": "Model could not generate predictions for grid"
+    }
+  }
+}

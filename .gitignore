@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+
+# Data and artifacts (large files)
+data/raw/
+data/interim/
+data/clean/
+data/balanced/
+data/splits/
+data/test/
+artifacts/models/
+artifacts/logs/
+artifacts/eval/
+
+# Keep directory structure
+!data/.gitkeep
+!artifacts/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Logs
+*.log
+
+# Tokenizer output
+data/tokenizer/tokenizer.json
+data/tokenizer/vocab.txt
+

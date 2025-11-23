@@ -1,0 +1,49 @@
+# Data sources for mechatronics domain
+
+allowed_hosts:
+  - "en.wikipedia.org"
+  - "wiki.ros.org"
+  - "docs.ros.org"
+  - "arxiv.org"
+
+seed_urls:
+  # Wikipedia pages - mechatronics topics
+  - url: "https://en.wikipedia.org/wiki/Mechatronics"
+    max_depth: 2
+  - url: "https://en.wikipedia.org/wiki/Control_engineering"
+    max_depth: 2
+  - url: "https://en.wikipedia.org/wiki/Robotics"
+    max_depth: 2
+  - url: "https://en.wikipedia.org/wiki/Sensor"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Actuator"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Programmable_logic_controller"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Industrial_automation"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Embedded_system"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Kinematics"
+    max_depth: 1
+  - url: "https://en.wikipedia.org/wiki/Robot_kinematics"
+    max_depth: 1
+  
+  # ROS documentation
+  - url: "https://wiki.ros.org/ROS/Tutorials"
+    max_depth: 1
+
+disallowed_patterns:
+  - "/wiki/Special:"
+  - "/wiki/Talk:"
+  - "/wiki/User:"
+  - "/wiki/Wikipedia:"
+  - "/wiki/File:"
+  - "/wiki/Template:"
+  - "/wiki/Help:"
+  - "/wiki/Category:"
+  - "/wiki/Portal:"
+  - "action=edit"
+  - "oldid="
+  - "printable=yes"
+
