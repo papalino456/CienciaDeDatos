@@ -10,6 +10,7 @@ scipy>=1.11.0
 pandas>=2.0.0
 datasets>=2.14.0
 pyarrow>=14.0.0
+openpyxl>=3.1.0
 
 # Web scraping
 httpx>=0.25.0
@@ -42,3 +43,6 @@ wandb>=0.15.0
 
 # Performance
 accelerate>=0.24.0
+
+# Dimensionality reduction
+umap-learn>=0.5.5
