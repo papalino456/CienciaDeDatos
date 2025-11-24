@@ -155,14 +155,24 @@ def main(config):
     print(f"Total documents: {total_docs}")
     print(f"Duplicates: {duplicates}")
     print(f"English ratio: {report['english_ratio']:.2%}")
-    print(f"\nDocument length (chars): {report['length_stats']['mean']:.0f} ± {np.std(doc_lengths):.0f}")
-    print(f"Word count: {report['word_count_stats']['mean']:.0f} ± {np.std(word_counts):.0f}")
+    length_mean = report['length_stats'].get('mean_chars', report['length_stats'].get('mean', 0))
+    word_mean = report['word_count_stats'].get('mean', 0)
+    length_std = float(np.std(doc_lengths)) if doc_lengths else 0
+    word_std = float(np.std(word_counts)) if word_counts else 0
+    print(f"\nDocument length (chars): {length_mean:.0f} +/- {length_std:.0f}")
+    print(f"Word count: {word_mean:.0f} +/- {word_std:.0f}")
     print(f"\nTop languages:")
-    for lang, count in languages.most_common(5):
-        print(f"  {lang}: {count} ({count/total_docs:.1%})")
+    if total_docs > 0:
+        for lang, count in languages.most_common(5):
+            print(f"  {lang}: {count} ({count/total_docs:.1%})")
+    else:
+        print("  No documents processed.")
     print(f"\nTopic distribution:")
-    for topic, count in topic_counts.most_common():
-        print(f"  {topic}: {count}")
+    if topic_counts:
+        for topic, count in topic_counts.most_common():
+            print(f"  {topic}: {count}")
+    else:
+        print("  No topics detected.")
     
     # Generate visualizations
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
 Balance dataset across topic buckets and create train/val/test splits.
+
+Changes:
+- Assign topics at the sentence level (not whole-document majority) to reduce noise.
 """
 
 import json
@@ -20,28 +23,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def categorize_sentences(sentences: list, text: str, topic_config: dict) -> dict:
-    """Categorize sentences by topic."""
-    text_lower = text.lower()
-    
-    # Count topic matches
-    topic_matches = defaultdict(int)
+def assign_topic(sentence: str, topic_config: dict) -> str:
+    """
+    Assign a topic to a single sentence using keyword hits.
+    Returns 'other' when no keyword matches.
+    """
+    text_lower = sentence.lower()
+    scores = {}
     for topic, info in topic_config.items():
-        keywords = info['keywords']
-        for keyword in keywords:
-            if keyword in text_lower:
-                topic_matches[topic] += 1
-    
-    # Assign primary topic (most matches)
-    if topic_matches:
-        primary_topic = max(topic_matches.items(), key=lambda x: x[1])[0]
-    else:
-        primary_topic = 'other'
-    
-    return {
-        'primary_topic': primary_topic,
-        'topic_matches': dict(topic_matches)
-    }
+        hits = sum(text_lower.count(keyword) for keyword in info['keywords'])
+        scores[topic] = hits
+    best_score = max(scores.values()) if scores else 0
+    if best_score == 0:
+        return 'other'
+    # In case of ties, the sorted order is deterministic
+    best_topics = [t for t, s in scores.items() if s == best_score]
+    return sorted(best_topics)[0]
 
 
 @click.command()
@@ -65,7 +62,7 @@ def main(config):
     
     random.seed(config_data['eval']['random_seed'])
     
-    logger.info("Categorizing sentences by topic...")
+    logger.info("Categorizing sentences by topic (sentence-level)...")
     
     # Collect sentences by topic
     topic_sentences = defaultdict(list)
@@ -74,21 +71,16 @@ def main(config):
         for line in tqdm(f, desc="Categorizing"):
             try:
                 doc = json.loads(line)
-                text = doc.get('text', '')
                 sentences = doc.get('sentences', [])
                 
                 if not sentences:
                     continue
                 
-                # Categorize document
-                categorization = categorize_sentences(sentences, text, topic_config)
-                primary_topic = categorization['primary_topic']
-                
-                # Add sentences to topic bucket
                 for sent in sentences:
-                    topic_sentences[primary_topic].append({
+                    topic = assign_topic(sent, topic_config)
+                    topic_sentences[topic].append({
                         'text': sent,
-                        'topic': primary_topic,
+                        'topic': topic,
                         'url': doc.get('url', '')
                     })
                 
