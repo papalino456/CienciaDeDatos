@@ -12,6 +12,7 @@ import yaml
 from tokenizers import Tokenizer
 from tokenizers.models import WordPiece
 from tokenizers.normalizers import Lowercase, NFD, StripAccents, Sequence
+from tokenizers.processors import TemplateProcessing
 from tokenizers.pre_tokenizers import Whitespace
 from tokenizers.trainers import WordPieceTrainer
 from tqdm import tqdm
@@ -108,6 +109,18 @@ def main(config):
     tokenizer.train_from_iterator(training_corpus, trainer=trainer)
     
     logger.info("Training complete!")
+    
+    # Add CLS/SEP post-processor so encodings always include special tokens
+    cls_id = tokenizer.token_to_id("[CLS]")
+    sep_id = tokenizer.token_to_id("[SEP]")
+    tokenizer.post_processor = TemplateProcessing(
+        single="[CLS] $A [SEP]",
+        pair="[CLS] $A [SEP] $B [SEP]",
+        special_tokens=[
+            ("[CLS]", cls_id),
+            ("[SEP]", sep_id),
+        ],
+    )
     
     # Save tokenizer
     output_path = tokenizer_dir / 'tokenizer.json'
