@@ -93,7 +93,11 @@ if (-not $SkipEval) {
     
     Write-Host "`nVisualizing with 3D PCA..." -ForegroundColor Yellow
     python src/eval/visualize_pca.py --config $config
-    if ($LASTEXITCODE -ne 0) { throw "Visualization failed" }
+    if ($LASTEXITCODE -ne 0) { throw "PCA visualization failed" }
+    
+    Write-Host "`nVisualizing with 3D UMAP..." -ForegroundColor Yellow
+    python src/eval/visualize_umap.py --config $config
+    if ($LASTEXITCODE -ne 0) { throw "UMAP visualization failed" }
 } else {
     Write-Host "`n[10/10] Skipping evaluation" -ForegroundColor Gray
 }
@@ -103,7 +107,8 @@ Write-Host "PIPELINE COMPLETE!" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Green
 Write-Host "`nOutputs:" -ForegroundColor Cyan
 Write-Host "  - Final model: artifacts/models/mecha-embed-v1/best/" -ForegroundColor White
-Write-Host "  - 3D visualization: artifacts/eval/pca_3d.html" -ForegroundColor White
+Write-Host "  - 3D PCA visualization: artifacts/eval/pca_3d.html" -ForegroundColor White
+Write-Host "  - 3D UMAP visualization: artifacts/eval/umap_3d.html" -ForegroundColor White
 Write-Host "  - Logs: artifacts/logs/" -ForegroundColor White
-Write-Host "`nOpen artifacts/eval/pca_3d.html in your browser to view the embeddings!" -ForegroundColor Yellow
+Write-Host "`nOpen artifacts/eval/pca_3d.html or artifacts/eval/umap_3d.html in your browser to view the embeddings!" -ForegroundColor Yellow
 
