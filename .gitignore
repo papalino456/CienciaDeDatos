@@ -37,6 +37,10 @@ artifacts/eval/
 .DS_Store
 Thumbs.db
 
+# Temporary Excel files
+~$*.xlsx
+~$*.xls
+
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
