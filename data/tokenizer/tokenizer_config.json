@@ -1,0 +1,13 @@
+{
+  "vocab_size": 16000,
+  "model_type": "wordpiece",
+  "special_tokens": [
+    "[PAD]",
+    "[UNK]",
+    "[CLS]",
+    "[SEP]",
+    "[MASK]"
+  ],
+  "lowercase": true,
+  "strip_accents": true
+}
