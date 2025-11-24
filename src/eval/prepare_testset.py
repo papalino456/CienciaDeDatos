@@ -68,7 +68,17 @@ def prepare_test_samples(test_file: Path, samples_per_bucket: int, seed: int = 4
     return test_samples
 
 
-def encode_sentences(sentences: list, model, tokenizer, device, max_length: int = 256, batch_size: int = 32):
+def encode_sentences(
+    sentences: list,
+    model,
+    tokenizer,
+    device,
+    max_length: int = 256,
+    batch_size: int = 32,
+    cls_id: int = 1,
+    sep_id: int = 2,
+    pad_id: int = 0,
+):
     """Encode sentences to embeddings."""
     model.eval()
     all_embeddings = []
@@ -81,18 +91,19 @@ def encode_sentences(sentences: list, model, tokenizer, device, max_length: int 
             encodings = [tokenizer.encode(text) for text in batch_texts]
             
             # Prepare batch
-            max_len = min(max(len(enc.ids) for enc in encodings), max_length)
+            max_len = min(max(len(enc.ids) for enc in encodings), max_length - 2)
             
             input_ids = []
             attention_mask = []
             
             for enc in encodings:
-                ids = enc.ids[:max_len]
+                ids = [cls_id] + enc.ids[:max_len] + [sep_id]
                 mask = [1] * len(ids)
                 
                 # Pad
-                pad_len = max_len - len(ids)
-                ids = ids + [0] * pad_len
+                pad_len = (max_length - len(ids))
+                pad_len = max(pad_len, 0)
+                ids = ids + [pad_id] * pad_len
                 mask = mask + [0] * pad_len
                 
                 input_ids.append(ids)
@@ -136,6 +147,10 @@ def main(config):
     tokenizer_path = tokenizer_dir / 'tokenizer.json'
     logger.info(f"Loading tokenizer from {tokenizer_path}")
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
+    vocab = tokenizer.get_vocab()
+    cls_id = vocab.get('[CLS]', 1)
+    sep_id = vocab.get('[SEP]', 2)
+    pad_id = vocab.get('[PAD]', 0)
     
     # Device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -174,7 +189,16 @@ def main(config):
     
     # Generate embeddings
     logger.info("Generating embeddings...")
-    embeddings = encode_sentences(test_samples, model, tokenizer, device)
+    embeddings = encode_sentences(
+        test_samples,
+        model,
+        tokenizer,
+        device,
+        max_length=config_data['train']['simcse'].get('max_seq_length', 256),
+        cls_id=cls_id,
+        sep_id=sep_id,
+        pad_id=pad_id,
+    )
     
     logger.info(f"Embeddings shape: {embeddings.shape}")
     
