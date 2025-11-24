@@ -14,9 +14,10 @@ import torch
 import torch.nn as nn
 import yaml
 from tokenizers import Tokenizer
+from torch.optim import AdamW
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
-from transformers import BertModel, BertConfig, AdamW, get_linear_schedule_with_warmup
+from transformers import BertModel, BertConfig, get_linear_schedule_with_warmup
 
 import sys
 sys.path.append(str(Path(__file__).parent.parent))
@@ -37,6 +38,10 @@ class TSDaeDataset(Dataset):
         self.max_length = max_length
         self.deletion_prob = deletion_prob
         self.sentences = []
+        vocab = tokenizer.get_vocab()
+        self.cls_id = vocab.get('[CLS]', 1)
+        self.sep_id = vocab.get('[SEP]', 2)
+        self.pad_id = vocab.get('[PAD]', 0)
         
         with open(file_path, 'r', encoding='utf-8') as f:
             for line in f:
@@ -75,7 +80,9 @@ class TSDaeDataset(Dataset):
         
         # Encode original
         encoding = self.tokenizer.encode(text)
-        original_ids = encoding.ids[:self.max_length]
+        max_core = max(self.max_length - 2, 0)
+        core_ids = encoding.ids[:max_core]
+        original_ids = [self.cls_id] + core_ids + [self.sep_id]
         
         # Apply deletion noise
         noisy_ids = self._apply_deletion_noise(original_ids)
@@ -172,6 +179,7 @@ def main(config):
     logger.info(f"Loading tokenizer from {tokenizer_path}")
     tokenizer = Tokenizer.from_file(str(tokenizer_path))
     vocab_size = tokenizer.get_vocab_size()
+    pad_id = tokenizer.get_vocab().get('[PAD]', 0)
     
     # Load encoder
     logger.info(f"Loading pretrained encoder from {mlm_model_dir}")
@@ -206,7 +214,7 @@ def main(config):
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=collate_fn,
+        collate_fn=lambda batch: collate_fn(batch, pad_token_id=pad_id),
         num_workers=0
     )
     
@@ -214,7 +222,7 @@ def main(config):
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        collate_fn=collate_fn,
+        collate_fn=lambda batch: collate_fn(batch, pad_token_id=pad_id),
         num_workers=0
     )
     
@@ -234,16 +242,19 @@ def main(config):
         num_training_steps=total_steps
     )
     
-    # Device
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    # Device - force GPU
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available. GPU is required for training.")
+    device = torch.device('cuda')
     logger.info(f"Using device: {device}")
+    logger.info(f"GPU: {torch.cuda.get_device_name(0)}")
     model.to(device)
     
     # Loss function
     criterion = nn.CrossEntropyLoss(ignore_index=0)  # Ignore padding
     
     # Mixed precision
-    use_fp16 = train_config.get('fp16', False) and torch.cuda.is_available()
+    use_fp16 = train_config.get('fp16', False)
     scaler = torch.cuda.amp.GradScaler() if use_fp16 else None
     
     logger.info("Starting TSDAE training...")
