@@ -215,7 +215,7 @@ async def fetch_arxiv_abstracts(config: dict):
     output_dir = Path(config['paths']['raw_data'])
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    base_url = "http://export.arxiv.org/api/query"
+    base_url = "https://export.arxiv.org/api/query"
     
     async with httpx.AsyncClient(timeout=30) as client:
         for category in categories:
